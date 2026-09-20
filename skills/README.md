@@ -1,24 +1,34 @@
 # skills/ — 分野非依存スキルの正本
 
 ここに置くのは、**どの door の仕事でも使うもの**だけ。動画の知識も報告書の知識もここには置かない。
-`scripts/sync_user_skills.py --apply` が `~/.claude/skills/` へ配る（symlink は使わない・コピー）。
+`python scripts/sync_user_skills.py --apply` が `~/.claude/skills/` へ配る（symlink は使わずコピー）。
 
-## 引っ越し待ち（オーナー判断）
+配った先はユーザーレベルなので、**どのリポジトリで開いたセッションからも見える**。
+research のセッションからも使える。
 
-`takahashi919/research` の中に、動画と無関係な汎用スキルが 4 本ある。Remotion への言及は 0 件で、
-報告書づくりでもそのまま使えるもの:
+## 入っているもの
 
-| スキル | 中身 |
+| スキル | 何をするか | 出どころ |
+|---|---|---|
+| `md-report-html` | Markdown → 読みやすい Web レポート HTML（自己完結・スマホ対応）。「HTML で出して」「レポートにして」で発動 | research から移設（2026-09-20） |
+| `ref-readable-diagram` | 説明図（フロー・構成・状態遷移・シーケンス）の解読速度の原則辞書 P-1..P-7。自動発動は切ってあり、他スキルから開かれる前提 | research から移設（2026-09-20） |
+
+## ここに移さなかったもの（理由つき）
+
+research にある残り 3 本は、**実行コマンドがリポジトリ相対パスを持っている**ため移せない。
+移すと動かなくなる（「research で出来ることが出来なくならない」を優先した）。
+
+| スキル | 移せない理由 |
 |---|---|
-| `md-report-html` | Markdown → 読みやすい Web レポート HTML（自己完結・スマホ対応） |
-| `run-cognitive-ease-infographic` | 認知負荷図解。1 枚画像カード |
-| `ref-readable-diagram` | 説明図（フロー・構成・状態遷移）の「解読速度」の作法 |
-| `run-ai-images` | 汎用 AI 画像生成 |
+| `run-ai-images` | `bash .claude/skills/run-ai-images/scripts/generate.sh …` を **11 箇所**で呼ぶ |
+| `run-cognitive-ease-infographic` | `node .claude/skills/…/scripts/render.js` を呼ぶ。加えて冒頭に「**この repo での実行環境**」という移植適用メモがあり、出力先 `output/_samples/infographics/` や「image モードは実行不可」という research 固有の条件が書かれている。`/zukai` コマンドもこのパスに依存 |
+| `wrap-ai-image-cognitive-ease` | 上の 2 本に依存する wrap |
 
-**移すか複製するかが未決。**
+**移したければ先にパスを可搬にする**（スキル自身のディレクトリからの相対にする / 環境変数で解決する）。
+それは別作業で、壊す危険があるので今回はやっていない。
 
-- **移す**（推奨）— 二重真実にならない。ただし research 単体で `/zukai` が動かなくなるので、
-  `sync_user_skills.py --apply` で `~/.claude/skills/` に配っておくことが前提になる
-- **複製する** — research が単体で完結する。代わりに同じものが 2 箇所に増える
+## 足すときの線引き
 
-決まるまでここは空のまま。**勝手に移さない。**
+- **どの repo でも使うか。** 1 つの door でしか使わないなら、その door の中に置く
+- **リポジトリ相対パスを実行コマンドに持っていないか。** 持っていると移した先で壊れる
+- 足したら `sync_user_skills.py --check` が drift 0 になるまで配る
