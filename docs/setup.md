@@ -62,8 +62,8 @@ plugin は install 時点のスナップショット。repo を更新したら
 
 ### 3. llm-wiki
 
-**`--mode full` が必須。** 司書が repo 内の `scripts/wiki` を動かすため。既定の `safe` だと
-permission denied になり、司書は rg での代替に落ちる。
+**`--mode safe` でよい。** 司書が `scripts/wiki` を動かせるよう、allowlist を引いてある（→ 下の「権限」）。
+昔は `--mode full` が必須だったが、あれは allowlist が無かったことの対症療法だった。
 
 door 名は `--name llm-wiki` で固定する。GitHub 上の repo 名は `LLM-Wiki` だが、
 `CLAUDE.md` の綴りと合わせないと呼べない。
@@ -90,6 +90,68 @@ cd ~/wiki/llm-wiki && TZ=Asia/Tokyo bash scripts/test.sh    # 110 PASS / 1 FAIL
 
 ---
 
+## 権限 — door が `permission denied` を返すとき
+
+door は**非対話**で走る。許可を聞く相手がいないので、事前の許可リスト（allowlist）が無いと
+Bash も Write もその場で拒否される。これが「司書が何もできない」の正体。
+
+### allowlist は権限を広げる設定ではない
+
+OS の権限とは別物。Claude Code が OS の上に持つ関所に対する「この操作は聞かなくていい」という
+事前回答で、**full mode より狭い**。
+
+| | 意味 |
+|---|---|
+| `--mode full` | 関所ごと撤去。何を要求されても通す |
+| allowlist | 関所は残す。挙げた操作だけ素通り、他は止まる |
+
+`--mode full` は `claude --dangerously-skip-permissions` で起動する。**root では Claude Code 側が
+拒否する**ので、コンテナや CI では full mode の door はそもそも起動しない。
+
+### 書く場所を間違えると、黙って効かない
+
+**`permissions.allow` は「フォルダの信頼」を待つ。** committed の `.claude/settings.json` に書いても、
+trust dialog に Yes と答えるまで効かない。door は非対話なのでその dialog に答えられない。
+
+紛らわしいのは **hooks は trust を待たずに動く**こと。「hook は効いているのに allow だけ効かない」
+という切り分けにくい症状になる（`deny` と `ask` も即座に効く。待つのは `allow` だけ）。
+
+| 書く場所 | trust | 用途 |
+|---|---|---|
+| `.claude/settings.json`（commit する） | **待つ** | チームで共有する正本 |
+| `.claude/settings.local.json`（**追跡しない**） | 待たない | door・CI など非対話で確実に効かせる |
+
+`settings.local.json` の allow が trust を待たないのは「repo のものでなく個人のもの」だから。
+**git 管理下に入った瞬間 committed と同じ扱いになる**ので、`.gitignore` に入れること。
+
+### 記法の落とし穴
+
+`Write(path)` というパス規則は**一致しない**。Write / Edit / NotebookEdit すべて `Edit(path)` で書く。
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/wiki *)",
+      "Bash(scripts/wiki *)",
+      "Bash(rg *)",
+      "Edit(entities/**)",
+      "Edit(records/**)"
+    ]
+  }
+}
+```
+
+効いているかは door 本人に 1 回聞けば分かる:
+
+```sh
+foyer ask llm-wiki "./scripts/wiki find test を実行して結果を 2 行で"
+```
+
+`permission denied` が出なければ通っている。
+
+---
+
 ## 詰まったとき
 
 | 症状 | 見るところ |
@@ -97,7 +159,8 @@ cd ~/wiki/llm-wiki && TZ=Asia/Tokyo bash scripts/test.sh    # 110 PASS / 1 FAIL
 | toolhint の注入が一度も出ない | `python3` が PATH にあるか / `toolhint doctor` / ルールのある repo の dir で打っているか |
 | 狙ったルールが出ない | `toolhint test "<コマンド>"` で dry-run。正規表現は `tool_input` の JSON 文字列化に当たる |
 | `foyer ask` が exit 3 | そのセッションが busy。黙ったキューイングはしない仕様なので、待たずに後で |
-| `foyer ask` が何も編集しない | door が `--mode safe`。`permissionDenials` に拒否が記録されている |
+| `foyer ask` が `permission denied` を出す | allowlist が効いていない → 下の「権限」。`permissionDenials` に拒否が記録されている |
+| door が `--dangerously-skip-permissions` で落ちる | その door が `--mode full`。root では使えない → 下の「権限」 |
 | llm-wiki のテストが大量に落ちる | `TZ=Asia/Tokyo` を付けているか |
 | npm install が失敗する | 同梱 `dist/` で動作確認だけする（上記 1） |
 

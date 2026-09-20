@@ -53,12 +53,36 @@ else
   chmod +x "$WIKI_DIR"/scripts/wiki "$WIKI_DIR"/scripts/*.sh 2>/dev/null || true
   ok "clone した"
 fi
+# allowlist が無いと、非対話の door は Bash も Write も全部拒否される。
+# committed の settings.json に書いた allow は「フォルダの信頼」を待つので
+# door からは効かない。追跡しない settings.local.json だけが待たずに効く。
+LOCAL_SETTINGS="$WIKI_DIR/.claude/settings.local.json"
+if [ -f "$LOCAL_SETTINGS" ]; then
+  skip "$LOCAL_SETTINGS は既にある"
+else
+  mkdir -p "$(dirname "$LOCAL_SETTINGS")"
+  cat > "$LOCAL_SETTINGS" <<'JSON'
+{
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/wiki *)",
+      "Bash(scripts/wiki *)",
+      "Bash(rg *)",
+      "Edit(entities/**)",
+      "Edit(records/**)"
+    ]
+  }
+}
+JSON
+  ok "司書の allowlist を置いた（→ docs/setup.md の「権限」）"
+fi
+
 if foyer ls 2>/dev/null | grep -q '^llm-wiki[[:space:]]'; then
   skip "door llm-wiki は登録済み"
 else
   # --name: repo 名は LLM-Wiki だが door 名は CLAUDE.md の綴りに揃える
-  # --mode full: 司書が repo 内の scripts/wiki を動かすために必須
-  foyer add "$WIKI_DIR" --name llm-wiki --yes --mode full \
+  # mode は safe のまま。司書が動くのに必要な許可は上の allowlist で与えてある
+  foyer add "$WIKI_DIR" --name llm-wiki --yes \
     --desc "llm-wiki — 外の世界 (会社・人・コミュニティ・記事・道具) への判断の記録; 司書が記録を根拠に答える"
 fi
 
