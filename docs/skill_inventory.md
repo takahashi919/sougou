@@ -1,6 +1,6 @@
 # スキル棚卸し（全 repo 横断）
 
-> 初版 2026-09-20 ／ **更新 2026-09-20**（移設の反映と MiniMax の訂正）
+> 初版 2026-09-20 ／ **更新 2026-09-20**（移設の反映、MiniMax の訂正、`task-decomposer` の判定）
 > 対象: この環境に clone 済みの全 repo
 > 目的: 「いる / いらない」を名前だけで判断できないので、**何をするものか**と**配線されているか**を並べる。
 
@@ -80,7 +80,7 @@ run-cognitive-ease-infographic ──┬─► ref-readable-diagram   （図の�
 |---|---|---:|---|
 | `md-report-html` | Markdown → 読みやすい Web レポート HTML（自己完結・スマホ対応）。「HTML で出して」「レポートにして」で発動 | 1<br>(ADR の一覧のみ) | ✅ **受付へ移設済み** |
 | `minimax-h3-local-comfyui` | Windows ローカルの MiniMax H3 を ComfyUI 経由で操作。text-to-video / first-last-frame / 音声つき MP4 生成 | 0<br>(Claude 側) | **残す** — 下記 3-D |
-| `task-decomposer` | 8〜15 分の動画制作を最小サブタスクに分解し実行順序を決める。**20 行しかない** | 2<br>(どちらもメタ言及) | **要判断** — 下記 3-B |
+| `task-decomposer` | 8〜15 分の動画制作を最小サブタスクに分解し実行順序を決める。**20 行しかない** | 2<br>(どちらもメタ言及) | **退役候補** — 役割は paleo-writer が引き継ぎ済み（下記 3-B） |
 
 ---
 
@@ -94,15 +94,27 @@ AKARI では HTML オーバーレイが常に前面で、遮蔽は逆に**焼き
 移管後もこのまま残すと、台本を書く agent が正反対の指示を受け取る。
 残すが、レンダラ依存の 1 行は R2 側へ出す（→ `docs/harness_reinforcement_plan.md`）。
 
-### 3-B. `task-decomposer` が、どの agent からも呼ばれていない
+### 3-B. `task-decomposer` は役割を引き継がれている — 退役候補（確認済み 2026-09-20）
 
-`CLAUDE.md` §1 は Orchestrator-Workers を掲げ、`.claude/agents/paleo-orchestrator.md` 相当が
-分解を委譲する建て付けになっている。しかし research の `.claude/agents/` と
-`.claude/commands/` のどこからも `task-decomposer` は名指しされていない
-（当たったのは ADR の一覧と、この棚卸しの元になった計画書だけ）。
+`CLAUDE.md` §1 は Orchestrator-Workers を掲げているのに、research の `.claude/agents/` と
+`.claude/commands/` のどこからも `task-decomposer` は名指しされていない。
+「配線が抜けているのか、要らないのか」を **`paleo-video` の door 越しに実ファイルを読んで確かめた**。
 
-**消す前に、配線が抜けているだけではないか**を確かめること。20 行という薄さも、
-「育つ前に呼ばれなくなった」可能性を示している。
+**結論: 配線は実際に無いが、役割は既に `paleo-writer` が引き継いでいる。配線しても増えるものが無い。**
+
+| `task-decomposer` の 20 行が指示すること | 実態でそれをやっているもの |
+|---|---|
+| Task 0: キャラ設定（A: 博士 / B: 探検家 / C: ツッコミ / D: マスコット）と共通アセット | `character-bible` が正本。`paleo-writer` が必須参照で直読み |
+| Task 1-N: 1 セクション＝2 分 / 650 字での分割 | `paleo-writer` の Atomic Task Rule が同じ粒度を自前で持ち、`structure-templates` を直読み |
+| Task 1-N: テロップ JSON 生成 | `telop-manager` が担当 |
+| Task Final: 統合とレンダー | `CLAUDE.md` §4 のゲート制パイプラインと `remotion-engineer` が担当 |
+| `handoff_report` 書式 | 全サブエージェント共通のプロトコル（§5-1）。このスキル固有の価値ではない |
+
+抜け落ちている工程は無い。逆に **配線すると害がある** —— Task 0 のキャラ記述が
+A/B/C/D の古い表記のままで、SSOT である `character-bible`（スピノン・プレシィ・
+ボスモサ・オパビ博士）と矛盾する。いま配線すればドリフト源を 1 つ増やすだけになる。
+
+実際の削除は research 側の仕事。受付からは退役候補として置くまでにする。
 
 ### 3-D. `minimax-h3-local-comfyui` は Codex の自己完結スキル（訂正）
 
@@ -179,7 +191,7 @@ AKARI Video の製品スキル。**編集の作業台そのもの**で、制作�
 
 ---
 
-## 5. まとめ — 移す / 残す / 要判断
+## 5. まとめ — 移す / 残す / 退役
 
 | 判断 | 本数 | 中身 |
 |---|---:|---|
@@ -188,7 +200,7 @@ AKARI Video の製品スキル。**編集の作業台そのもの**で、制作�
 | **残した（可搬化が先）** | 3 | `run-ai-images` · `run-cognitive-ease-infographic` · `wrap-ai-image-cognitive-ease`（→ 3-E） |
 | **触らない** | 1 | `minimax-h3-local-comfyui`（Codex の自己完結スキル → 3-D） |
 | **退役予定** | 1 | `remotion-layer-guide`（AKARI 移管で） |
-| **要判断** | 1 | `task-decomposer`（配線が抜けている疑い → 3-B） |
+| **退役候補** | 1 | `task-decomposer`（役割は `paleo-writer` が引き継ぎ済み。配線しても増えない → 3-B） |
 | **自動で消える** | 6 | opabenia の複製（退役すれば） |
 
 移設の検証: `sync_skill_mirror.py --check` drift 0 ／ `/zukai` の render 経路を実走して `OK:` ／
