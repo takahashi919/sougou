@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# setup.sh — 総合受付の導入を一気通貫で流す。
+#
+# 何度打ち直してもよい（既にあるものは飛ばす）。
+# 変更したいときは環境変数で:
+#   RESEARCH_DIR=~/dev/research WIKI_DIR=~/wiki/llm-wiki TOOLS_DIR=~/tools bash scripts/setup.sh
+set -euo pipefail
+
+TOOLS_DIR="${TOOLS_DIR:-$HOME/tools}"
+WIKI_DIR="${WIKI_DIR:-$HOME/wiki/llm-wiki}"
+RESEARCH_DIR="${RESEARCH_DIR:-}"
+OWNER="${OWNER:-takahashi919}"
+
+have() { command -v "$1" >/dev/null 2>&1; }
+step() { printf '\n\033[1m== %s\033[0m\n' "$1"; }
+skip() { printf '   skip: %s\n' "$1"; }
+ok()   { printf '   ok:   %s\n' "$1"; }
+
+step "0. 道具の確認"
+missing=""
+for c in git node python3; do have "$c" || missing="$missing $c"; done
+[ -n "$missing" ] && { echo "   足りない:$missing — 入れてから再実行"; exit 1; }
+have rg || echo "   注意: rg (ripgrep) が無い。llm-wiki の司書が探せない"
+ok "git / node $(node -v) / python3 $(python3 -V 2>&1 | cut -d' ' -f2)"
+
+step "1. foyer（door を叩く窓口 CLI）"
+if have foyer; then
+  skip "foyer は入っている（$(foyer --version 2>/dev/null || echo 'version 不明')）"
+else
+  mkdir -p "$TOOLS_DIR"
+  [ -d "$TOOLS_DIR/foyer" ] || git clone "https://github.com/$OWNER/foyer.git" "$TOOLS_DIR/foyer"
+  ( cd "$TOOLS_DIR/foyer" && npm install --no-audit --no-fund && npm run build && npm link )
+  ok "foyer を入れた"
+fi
+foyer doctor || echo "   注意: foyer doctor が警告を出した（上の出力を見ること）"
+
+step "2. toolhint（操作の直前に docs を注入する hook）"
+if claude plugin list 2>/dev/null | grep -q toolhint; then
+  skip "toolhint は入っている"
+else
+  claude plugin marketplace add "$OWNER/toolhint"
+  claude plugin install toolhint@toolhint
+  echo "   PATH に足すこと（シェルの rc へ）:"
+  echo '     export PATH="$HOME/.claude/plugins/marketplaces/toolhint/cli:$PATH"'
+fi
+
+step "3. llm-wiki（外の世界への判断を置く door）"
+if [ -d "$WIKI_DIR" ]; then
+  skip "$WIKI_DIR は既にある"
+else
+  mkdir -p "$(dirname "$WIKI_DIR")"
+  git clone "https://github.com/$OWNER/LLM-Wiki.git" "$WIKI_DIR"
+  chmod +x "$WIKI_DIR"/scripts/wiki "$WIKI_DIR"/scripts/*.sh 2>/dev/null || true
+  ok "clone した"
+fi
+if foyer ls 2>/dev/null | grep -q '^llm-wiki[[:space:]]'; then
+  skip "door llm-wiki は登録済み"
+else
+  # --name: repo 名は LLM-Wiki だが door 名は CLAUDE.md の綴りに揃える
+  # --mode full: 司書が repo 内の scripts/wiki を動かすために必須
+  foyer add "$WIKI_DIR" --name llm-wiki --yes --mode full \
+    --desc "llm-wiki — 外の世界 (会社・人・コミュニティ・記事・道具) への判断の記録; 司書が記録を根拠に答える"
+fi
+
+step "4. paleo-video（動画制作の door）"
+if foyer ls 2>/dev/null | grep -q '^paleo-video[[:space:]]'; then
+  skip "door paleo-video は登録済み"
+elif [ -z "$RESEARCH_DIR" ]; then
+  echo "   RESEARCH_DIR が未指定。research のクローン先を渡して再実行するか、手で:"
+  echo "     foyer add <research のパス> --name paleo-video --desc \"paleo-video — …\""
+elif [ ! -d "$RESEARCH_DIR" ]; then
+  echo "   $RESEARCH_DIR が無い。パスを確かめること"
+else
+  foyer add "$RESEARCH_DIR" --name paleo-video --yes \
+    --desc "paleo-video — 子供向け古生代教育動画の本番ハーネス; 研究(NotebookLM)→台本→音声→timing→レンダーのゲート制パイプライン。エピソード制作・素材・台本の依頼はここ"
+fi
+
+step "5. 汎用スキルを配る"
+if [ -n "$(ls -A skills 2>/dev/null | grep -v README.md || true)" ]; then
+  python3 scripts/sync_user_skills.py --apply
+else
+  skip "skills/ が空（→ skills/README.md）"
+fi
+
+step "できあがり"
+foyer ls
+cat <<'EOF'
+
+次の一手:
+  cd ~/sougou && claude
+  「外の世界の知識」を試す:  foyer ask llm-wiki "org/anthropic について知ってること全部"
+  「動画のこと」を試す:      foyer ask paleo-video "いま制作中のエピソードは？"
+EOF
