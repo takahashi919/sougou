@@ -9,6 +9,7 @@ set -euo pipefail
 TOOLS_DIR="${TOOLS_DIR:-$HOME/tools}"
 WIKI_DIR="${WIKI_DIR:-$HOME/wiki/llm-wiki}"
 RESEARCH_DIR="${RESEARCH_DIR:-}"
+KAISETU_DIR="${KAISETU_DIR:-$HOME/dev/kaisetu}"
 OWNER="${OWNER:-takahashi919}"
 
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -99,7 +100,30 @@ else
     --desc "paleo-video — 子供向け古生代教育動画の本番ハーネス; 研究(NotebookLM)→台本→音声→timing→レンダーのゲート制パイプライン。エピソード制作・素材・台本の依頼はここ"
 fi
 
-step "5. 汎用スキルを配る"
+step "5. kaisetu（説明物の工房の door）"
+if [ ! -d "$KAISETU_DIR" ]; then
+  mkdir -p "$(dirname "$KAISETU_DIR")"
+  git clone "https://github.com/$OWNER/kaisetu.git" "$KAISETU_DIR"
+  ok "clone した"
+else
+  skip "$KAISETU_DIR は既にある"
+fi
+# allowlist は追跡されていない間だけ trust を待たずに効く（→ docs/setup.md の「権限」）
+if [ -f "$KAISETU_DIR/.claude/settings.local.json" ]; then
+  skip "kaisetu の allowlist は置いてある"
+elif [ -f "$KAISETU_DIR/.claude/settings.json" ]; then
+  cp "$KAISETU_DIR/.claude/settings.json" "$KAISETU_DIR/.claude/settings.local.json"
+  ok "kaisetu の allowlist を置いた"
+fi
+[ -f "$KAISETU_DIR/.env" ] || echo "   注意: $KAISETU_DIR/.env が無い。cp .env.example .env して API キーを入れること"
+if foyer ls 2>/dev/null | grep -q '^kaisetu[[:space:]]'; then
+  skip "door kaisetu は登録済み"
+else
+  foyer add "$KAISETU_DIR" --name kaisetu --yes \
+    --desc "kaisetu — 説明物の工房; 図解・解説ページ・赤ペン・レビューの可視化。本番の動画制作は扱わない"
+fi
+
+step "6. 汎用スキルを配る"
 if [ -n "$(ls -A skills 2>/dev/null | grep -v README.md || true)" ]; then
   python3 scripts/sync_user_skills.py --apply
 else

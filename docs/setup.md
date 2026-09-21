@@ -25,9 +25,10 @@ RESEARCH_DIR=~/dev/research bash scripts/setup.sh
 | 2 | **toolhint** | 操作の直前に docs を注入する hook | `~/.claude/plugins/…/toolhint` |
 | 3 | **llm-wiki** | 外の世界への判断を置く door | `~/wiki/llm-wiki` |
 | 4 | **paleo-video** | 動画制作の door | research のクローン |
-| 5 | 汎用スキル | `skills/` → `~/.claude/skills/` | → `skills/README.md` |
+| 5 | **kaisetu** | 説明物の工房の door | `~/dev/kaisetu` |
+| 6 | 汎用スキル | `skills/` → `~/.claude/skills/` | → `skills/README.md` |
 
-**1・2 は道具**（インストールするもの）で door にしない。**3・4 は作業場**（door にするもの）。
+**1・2 は道具**（インストールするもの）で door にしない。**3・4・5 は作業場**（door にするもの）。
 
 ---
 
@@ -84,7 +85,17 @@ cd ~/wiki/llm-wiki && TZ=Asia/Tokyo bash scripts/test.sh    # 110 PASS / 1 FAIL
 `--desc` は人間向けラベルではなく**読むエージェント向け**に書く。受付は `foyer ls` の説明文だけを見て
 「動画のことはこの door」と判断する。
 
-### 5. 汎用スキル
+### 5. kaisetu
+
+説明物（図解・解説ページ・赤ペン）の工房。**API キーを使うのはここ**。
+
+`.env` は clone しただけでは無いので、`cp .env.example .env` して値を入れる。
+allowlist（`settings.local.json`）は setup.sh が置くが、置かないと door からスクリプトが叩けない。
+詳しくは向こうの `docs/setup.md`。
+
+`--desc` の線引きが弱いと、受付が動画の依頼をここへ寄こす。本番制作は `paleo-video`。
+
+### 6. 汎用スキル
 
 `skills/` が空のうちは何もしない。中身と引っ越しの判断は `skills/README.md`。
 
