@@ -1,6 +1,6 @@
 # スキル棚卸し（全 repo 横断）
 
-> 初版 2026-09-20 ／ **更新 2026-09-20**（移設の反映、MiniMax の訂正、`task-decomposer` の判定）
+> 初版 2026-09-20 ／ **更新 2026-09-21**（図解 3 本の `kaisetu` 移設、`task-decomposer` の判定、MiniMax の訂正）
 > 対象: この環境に clone 済みの全 repo
 > 目的: 「いる / いらない」を名前だけで判断できないので、**何をするものか**と**配線されているか**を並べる。
 
@@ -131,9 +131,20 @@ A/B/C/D の古い表記のままで、SSOT である `character-bible`（スピ�
 Codex は `.agents/skills/` から直接拾うので、CLAUDE.md から名指しされている必要がない。
 **MiniMax の作業は Codex 側で回っており、このスキルはその蒸留品**（オーナー確認済み）。**触らない。**
 
-### 3-E. 移せたのは 5 本中 2 本だけ（リポジトリ相対パスのため）
+### 3-E. 図解 3 本は `kaisetu` へ移設して解決（2026-09-21）
 
-実行コマンドが `.claude/skills/…` を直接叩くスキルは、ユーザーレベルへ移すと壊れる。
+実行コマンドが `.claude/skills/…` を直接叩くスキルは、**ユーザーレベルへ**移すと壊れる。
+だが行き先が repo なら repo 相対のまま動く。**可搬化は不要で、引っ越すだけでよかった。**
+
+移設先は `kaisetu`（説明物の工房）。research の制作動線からは一度も呼ばれていなかった
+（`agents`・`PIPELINE.md` に参照ゼロ、`/zukai` 自身に「動画エピソードの事実・台本には使わない」と明記）ので、
+本来の置き場に戻した形。`/zukai` も一緒に移した（スラッシュコマンドは repo ごとの名前空間なので改名は不要）。
+
+検証: `kaisetu` で render 経路を実走して両方 `OK:`（node 18+ / 外部依存ゼロ / キー不要）。
+
+**残り**: research 側の削除はまだ。image 経路が `codex` CLI 依存で、オーナーの手元でしか実証できないため。
+
+移せなかった当時の理由（記録として残す）:
 
 | スキル | 移せない理由 |
 |---|---|
@@ -141,7 +152,9 @@ Codex は `.agents/skills/` から直接拾うので、CLAUDE.md から名指し
 | `run-cognitive-ease-infographic` | `node .claude/skills/…/scripts/render.js` を呼ぶ。加えて冒頭の「**この repo での実行環境**」に出力先 `output/_samples/infographics/` や「image モード実行不可」という research 固有の条件が焼き込まれている。`/zukai` もこのパスに依存 |
 | `wrap-ai-image-cognitive-ease` | 上 2 本に依存 |
 
-移すならパスの可搬化が先（スキル自身のディレクトリからの相対にする等）。壊す危険があるので別作業。
+なお `run-ai-images` の実体は **Codex CLI（`codex exec` の image_gen）** で、`.env` の
+`OPENAI_API_KEY` / `GEMINI_API_KEY` は読まない。research で `.env` のキーを使っているのは
+`scripts/generate_*.py`（エピソード素材の生成）の方で、別系統。取り違えると黙って失敗する。
 
 ### 3-C. 図解 4 本を移すなら、まとめて移す
 
@@ -197,7 +210,7 @@ AKARI Video の製品スキル。**編集の作業台そのもの**で、制作�
 |---|---:|---|
 | ✅ **受付へ移設済み** | 2 | `md-report-html` · `ref-readable-diagram` |
 | **research に残す** | 5 | `character-bible` `script-policy` `eyecatch-se-rules` `structure-templates` `telop-manager` |
-| **残した（可搬化が先）** | 3 | `run-ai-images` · `run-cognitive-ease-infographic` · `wrap-ai-image-cognitive-ease`（→ 3-E） |
+| **`kaisetu` へ移設済み** | 3 | `run-ai-images` · `run-cognitive-ease-infographic` · `wrap-ai-image-cognitive-ease`（→ 3-E）。research 側の削除が残り |
 | **触らない** | 1 | `minimax-h3-local-comfyui`（Codex の自己完結スキル → 3-D） |
 | **退役予定** | 1 | `remotion-layer-guide`（AKARI 移管で） |
 | **退役候補** | 1 | `task-decomposer`（役割は `paleo-writer` が引き継ぎ済み。配線しても増えない → 3-B） |

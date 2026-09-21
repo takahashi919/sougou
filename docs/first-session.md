@@ -33,7 +33,7 @@ RESEARCH_DIR=<research のクローン先> bash scripts/setup.sh
 | # | 仕事 | どこの話 | 状態 |
 |---|---|---|---|
 | 1 | `task-decomposer` の配線 | research | ✅ 済（退役候補に倒した → `skill_inventory.md` §3-B）。実際の削除は research 側 |
-| 2 | 図解系 3 本の可搬化 — 実行コマンドのリポジトリ相対パスを直す（→ `skill_inventory.md` §3-E） | research | |
+| 2 | 図解系 3 本の可搬化 | research | ✅ 済（`kaisetu` へ移設して解決。可搬化は不要だった → `skill_inventory.md` §3-E）。research 側の削除が残り |
 | 3 | `opabenia` の退役 — README に移行済みと書く。research と同じ 4 キャラ・同じ skill 名の古い実装 | opabenia | |
 | 4 | AKARI のゲート再定義 — `akari_video_workflow.md` §7 が未決。デイノスクス回は `legacy_unverified` で通した | research（ADR） | |
 | 5 | 素材の作業台 — `asset_catalog.py` に `serve` を足して索引を目で見られるようにする | research | |
