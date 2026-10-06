@@ -26,8 +26,9 @@ RESEARCH_DIR=~/dev/research bash scripts/setup.sh
 | 3 | **llm-wiki** | 外の世界への判断を置く door | `~/wiki/llm-wiki` |
 | 4 | **paleo-video** | 動画制作の door | research のクローン |
 | 5 | 汎用スキル | `skills/` → `~/.claude/skills/` | → `skills/README.md` |
+| 6 | **readable-writing** | 日本語の文章・技術記事を書く plugin（まさお氏の配布物） | `~/tools/readable-writing-dist`（plugin として user scope へ） |
 
-**1・2 は道具**（インストールするもの）で door にしない。**3・4 は作業場**（door にするもの）。
+**1・2・6 は道具**（インストールするもの）で door にしない。**3・4 は作業場**（door にするもの）。
 
 ---
 
@@ -88,6 +89,23 @@ cd ~/wiki/llm-wiki && TZ=Asia/Tokyo bash scripts/test.sh    # 110 PASS / 1 FAIL
 
 `skills/` が空のうちは何もしない。中身と引っ越しの判断は `skills/README.md`。
 
+### 6. readable-writing
+
+**有料記事の共有物なので sougou には入れない**（この repo は public）。配布 zip を手元に展開して、
+そのディレクトリを marketplace として足す:
+
+```sh
+unzip writing.zip -d /tmp/rw && mkdir -p ~/tools && mv /tmp/rw/writing ~/tools/readable-writing-dist
+bash scripts/setup.sh        # 手順 6 が marketplace add → install まで流す
+```
+
+- local dir の marketplace は**その場所から読まれる**。展開先を消すと plugin が壊れる
+- 入れたら **Claude Code を開き直す**（書き手の agent 定義は起動時にしか読まれない）
+- 呼び名は `readable-writing:<skill>`（例: `/readable-writing:plain-japanese-writing`）
+- `wrap-masao-article` を自分名義で使うなら、**install の前に**
+  `plugin/skills/wrap-masao-article/references/` の 4 ファイルを書き直す（→ `docs/skill_inventory.md` §4）
+- 版を上げるときは新しい zip で展開先を差し替え、`claude plugin update readable-writing@readable-writing-dist`
+
 ---
 
 ## 詰まったとき
@@ -100,6 +118,7 @@ cd ~/wiki/llm-wiki && TZ=Asia/Tokyo bash scripts/test.sh    # 110 PASS / 1 FAIL
 | `foyer ask` が何も編集しない | door が `--mode safe`。`permissionDenials` に拒否が記録されている |
 | llm-wiki のテストが大量に落ちる | `TZ=Asia/Tokyo` を付けているか |
 | npm install が失敗する | 同梱 `dist/` で動作確認だけする（上記 1） |
+| `readable-writing:` の skill が出ない / 書き手 agent が見つからない | install 後に Claude Code を開き直したか / `claude plugin list` で enabled か / 展開先が残っているか |
 
 ## 管理画面（任意）
 

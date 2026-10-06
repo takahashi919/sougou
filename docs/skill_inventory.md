@@ -1,6 +1,6 @@
 # スキル棚卸し（全 repo 横断）
 
-> 初版 2026-09-20 ／ **更新 2026-09-20**（移設の反映と MiniMax の訂正）
+> 初版 2026-09-20 ／ 更新 2026-09-20（移設の反映と MiniMax の訂正）／ **更新 2026-10-06**（readable-writing の受け入れ → §4）
 > 対象: この環境に clone 済みの全 repo
 > 目的: 「いる / いらない」を名前だけで判断できないので、**何をするものか**と**配線されているか**を並べる。
 
@@ -13,6 +13,7 @@
 | akari-video-project-template | 23 | 対象外 | AKARI Video の配布物。向こうの製品の一部 |
 | llm-wiki | 4 | 対象外 | llm-wiki の配布物。司書の動線そのもの |
 | foyer | 1 | 対象外 | foyer の配布物（操作リファレンス） |
+| readable-writing | 13 | 対象外 | まさお氏の配布 plugin（2026-10-06 受け入れ → §4） |
 | sougou | 2 | 正本 | `md-report-html` · `ref-readable-diagram`（research から移設） |
 
 opabenia の 6 本は `character-bible` `eyecatch-se-rules` `script-policy` `structure-templates`
@@ -157,6 +158,52 @@ Codex は `.agents/skills/` から直接拾うので、CLAUDE.md から名指し
 | スキル | 何をするか |
 |---|---|
 | `ref-foyer` | foyer CLI の操作リファレンス。door 登録・ask・セッション継続・GUI・permission |
+
+### readable-writing — 13 本 + 書き手 agent 2 体（まさお氏の配布物）
+
+日本語の技術記事・タイトル・ふだんの文章を書く skill と、その採点基準を人のブラインド採点で育てる
+較正クイズ（rlquiz）。出どころはまさお氏の note 有料記事（2026-10-03）の共有物、v1.2.0。
+plugin は MIT、実例 `examples/` は CC BY-NC 4.0。**有料の共有物なので sougou（public）には中身を入れない**。
+導入は `docs/setup.md` 手順 6。
+
+**plugin のまま入れる（`skills/` に移さない）。** 兄弟 skill を `$SKILL_DIR/../<名前>` で探し、
+`delegate-gemini` は `${CLAUDE_PLUGIN_ROOT}` を使い、書き手は plugin の agent 定義。バラすと壊れる。
+
+人が直接呼ぶ 7 本（頭に `readable-writing:` が付く）:
+
+| スキル | 何をするか | 使いどころ |
+|---|---|---|
+| `plain-japanese-writing` | 報告・提案・説明を読者が知っている言葉だけで書き、文脈を持たない検査役に通してから出す | **すぐ使える。** 外部コマンドも Fable も要らない。「読みやすく書いて」「日本語チェック」で発動 |
+| `run-tech-article` | 記事 URL か素材メモ 1 個 → 技術解説記事 1 本（自己完結 HTML）。人の確認なしで完走（実測 30 分強） | 要 Pillow・日本語フォント。書き手は Fable（無ければ Opus に落ちる） |
+| `run-article-title` | 主張と要旨 → 記事タイトル 1 本を選ぶ | 単独でも使える |
+| `run-rlquiz` | rubric と人の好みのずれを、封印した予測 + ブラインド採点で測る。サーバは python3 標準ライブラリのみ | 自分の点で基準を育てたいとき |
+| `run-calibrated-writing-round` | rubric の無いジャンルで、お題 → rubric v0 → 候補 → 封印 → rlquiz → 改訂を 1 周 | 同上（新ジャンル） |
+| `wrap-masao-article` | `run-tech-article` の wrap。企画 → 本文 → note 用 Markdown + 画像 | **そのままでは使わない**（下記） |
+| `delegate-gemini` | 書いた文章を Gemini（cursor-agent 経由）に読ませて回りくどい文を拾う | cursor-agent + Cursor 有料プランが要る |
+
+残り 6 本（`assign-*` 5 本・`ref-tech-h2-section-writing`）は上から呼ばれる部品。
+
+受け入れ時に確かめたこと（2026-10-06）:
+
+- `claude plugin validate` 通過、捨て HOME で `marketplace add` → `install` → enabled まで通った
+- `run-rlquiz` の開票（`analyze.py`）を実例 1 回ぶんで再実行し、封印の sha256 照合が一致
+- 同梱 script の外部通信は `llmbench_previews.py`（wrap-masao-article 専用、公開ベンチのページを取得）だけ。
+  rlquiz のサーバは渡したアドレスに bind する（手順どおり `127.0.0.1` を渡すこと）
+
+**注意点（使う前に読む）:**
+
+1. **`wrap-masao-article` はまさお氏の名義・経歴・メンバーシップ紹介で記事を出す。**
+   自分名義にするには `references/` の `persona-masao.json` `voice-masao.md` `title-masao.md` `angles-masao.md` を
+   書き直す。plugin のキャッシュに入ると更新で戻るので、**展開先で直してから install** する
+2. **`wrap-masao-article` は実行のたびに `title-masao.md`（題の台帳）へ 1 行書き足す。** plugin の更新で消えるので、
+   残したいなら更新前に写す
+3. **`delegate-gemini` は既定で書き込みモード。** cursor-agent を `--force --trust` で起動し、Gemini が作業場所の
+   ファイルを書き換え・コマンド実行できる。読ませるだけなら必ず `{"task": "…", "mode": "read_only"}` で呼ぶ
+4. `assign-*` の frontmatter にある `agent-harness`（eval-loop）は任意の別 plugin。無くても単発は動く
+5. 文体を指定しない `run-tech-article` は第三者の解説記事になる。自分の声にするなら末尾に `/ 声 = <文体ファイルの絶対パス>`
+
+既存スキルとの関係: `md-report-html`（Markdown → レポート HTML）とは用途が別で被らない。
+図の原則は `ref-readable-diagram`、文章の原則は `plain-japanese-writing` と分担する。
 
 ### akari-video-project-template — 23 本
 

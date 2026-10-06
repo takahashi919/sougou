@@ -4,11 +4,13 @@
 # 何度打ち直してもよい（既にあるものは飛ばす）。
 # 変更したいときは環境変数で:
 #   RESEARCH_DIR=~/dev/research WIKI_DIR=~/wiki/llm-wiki TOOLS_DIR=~/tools bash scripts/setup.sh
+#   READABLE_WRITING_DIR=~/tools/readable-writing-dist  （手順 6。既定は $TOOLS_DIR の下）
 set -euo pipefail
 
 TOOLS_DIR="${TOOLS_DIR:-$HOME/tools}"
 WIKI_DIR="${WIKI_DIR:-$HOME/wiki/llm-wiki}"
 RESEARCH_DIR="${RESEARCH_DIR:-}"
+READABLE_WRITING_DIR="${READABLE_WRITING_DIR:-$TOOLS_DIR/readable-writing-dist}"
 OWNER="${OWNER:-takahashi919}"
 
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -80,6 +82,21 @@ if [ -n "$(ls -A skills 2>/dev/null | grep -v README.md || true)" ]; then
   python3 scripts/sync_user_skills.py --apply
 else
   skip "skills/ が空（→ skills/README.md）"
+fi
+
+step "6. readable-writing（日本語の文章・記事を書く plugin。まさお氏の配布物）"
+# 有料記事の共有物なので sougou（public）には入れない。手元に展開したものを marketplace として足す。
+# local dir の marketplace は「そこから読む」ので、展開先は消さないこと。
+if claude plugin list 2>/dev/null | grep -q 'readable-writing@'; then
+  skip "readable-writing は入っている"
+elif [ -f "$READABLE_WRITING_DIR/.claude-plugin/marketplace.json" ]; then
+  claude plugin marketplace add "$READABLE_WRITING_DIR"
+  claude plugin install readable-writing@readable-writing-dist
+  ok "入れた。agent 定義は起動時にしか読まれないので、Claude Code を開き直すこと"
+else
+  echo "   $READABLE_WRITING_DIR に配布物が無い。配布 zip を展開して置いてから再実行:"
+  echo "     unzip writing.zip -d /tmp/rw && mkdir -p \"$(dirname "$READABLE_WRITING_DIR")\" && mv /tmp/rw/writing \"$READABLE_WRITING_DIR\""
+  echo "   （中身と注意点 → docs/skill_inventory.md §4）"
 fi
 
 step "できあがり"

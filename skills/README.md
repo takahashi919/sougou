@@ -32,3 +32,5 @@ research にある残り 3 本は、**実行コマンドがリポジトリ相対
 - **どの repo でも使うか。** 1 つの door でしか使わないなら、その door の中に置く
 - **リポジトリ相対パスを実行コマンドに持っていないか。** 持っていると移した先で壊れる
 - 足したら `sync_user_skills.py --check` が drift 0 になるまで配る
+- **plugin として配られたものは `skills/` に入れない。** 兄弟 skill を相対で探したり agent 定義を持ったりするので、
+  バラすと壊れる。plugin のまま入れる（例: `readable-writing` → `docs/setup.md` 手順 6）
