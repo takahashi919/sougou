@@ -85,18 +85,18 @@ else
 fi
 
 step "6. readable-writing（日本語の文章・記事を書く plugin。まさお氏の配布物）"
-# 有料記事の共有物なので sougou（public）には入れない。手元に展開したものを marketplace として足す。
-# local dir の marketplace は「そこから読む」ので、展開先は消さないこと。
+# 中身は sougou（public）に入れない。展開済みの手元コピーがあればそれを、無ければ配布 repo（private）を足す。
+# 手元コピーは「そこから読む」ので消さないこと。wrap-masao-article を自分名義に直すなら手元コピーを使う。
 if claude plugin list 2>/dev/null | grep -q 'readable-writing@'; then
   skip "readable-writing は入っている"
-elif [ -f "$READABLE_WRITING_DIR/.claude-plugin/marketplace.json" ]; then
-  claude plugin marketplace add "$READABLE_WRITING_DIR"
+else
+  if [ -f "$READABLE_WRITING_DIR/.claude-plugin/marketplace.json" ]; then
+    claude plugin marketplace add "$READABLE_WRITING_DIR"
+  else
+    claude plugin marketplace add AI-Driven-R-D-Dept/readable-writing-dist
+  fi
   claude plugin install readable-writing@readable-writing-dist
   ok "入れた。agent 定義は起動時にしか読まれないので、Claude Code を開き直すこと"
-else
-  echo "   $READABLE_WRITING_DIR に配布物が無い。配布 zip を展開して置いてから再実行:"
-  echo "     unzip writing.zip -d /tmp/rw && mkdir -p \"$(dirname "$READABLE_WRITING_DIR")\" && mv /tmp/rw/writing \"$READABLE_WRITING_DIR\""
-  echo "   （中身と注意点 → docs/skill_inventory.md §4）"
 fi
 
 step "できあがり"

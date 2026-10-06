@@ -163,7 +163,8 @@ Codex は `.agents/skills/` から直接拾うので、CLAUDE.md から名指し
 
 日本語の技術記事・タイトル・ふだんの文章を書く skill と、その採点基準を人のブラインド採点で育てる
 較正クイズ（rlquiz）。出どころはまさお氏の note 有料記事（2026-10-03）の共有物、v1.2.0。
-plugin は MIT、実例 `examples/` は CC BY-NC 4.0。**有料の共有物なので sougou（public）には中身を入れない**。
+plugin は MIT、実例 `examples/` は CC BY-NC 4.0。配布 repo は `AI-Driven-R-D-Dept/readable-writing-dist`（private）。
+**有料の共有物なので sougou（public）には中身を入れない**。
 導入は `docs/setup.md` 手順 6。
 
 **plugin のまま入れる（`skills/` に移さない）。** 兄弟 skill を `$SKILL_DIR/../<名前>` で探し、
@@ -194,7 +195,7 @@ plugin は MIT、実例 `examples/` は CC BY-NC 4.0。**有料の共有物な�
 
 1. **`wrap-masao-article` はまさお氏の名義・経歴・メンバーシップ紹介で記事を出す。**
    自分名義にするには `references/` の `persona-masao.json` `voice-masao.md` `title-masao.md` `angles-masao.md` を
-   書き直す。plugin のキャッシュに入ると更新で戻るので、**展開先で直してから install** する
+   書き直す。plugin のキャッシュに入ると更新で戻るので、**手元に clone して直したフォルダを marketplace に足す**
 2. **`wrap-masao-article` は実行のたびに `title-masao.md`（題の台帳）へ 1 行書き足す。** plugin の更新で消えるので、
    残したいなら更新前に写す
 3. **`delegate-gemini` は既定で書き込みモード。** cursor-agent を `--force --trust` で起動し、Gemini が作業場所の
