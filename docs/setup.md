@@ -125,7 +125,7 @@ cloud のコンテナは毎回まっさらなので、`.claude/hooks/session-sta
 足りない repo は hook が名前を出すので、エージェントが必要なときだけ付けて clone し、hook を打ち直す。
 最初から全部ほしいなら、セッションを始めるときに上の repo も一緒に選んでおく。
 
-hook の登録と `foyer` の許可は `.claude/settings.json` に置く:
+hook の登録と `foyer` の許可は `.claude/settings.json` に置いてある（中身は下のとおり）:
 
 ```json
 {
