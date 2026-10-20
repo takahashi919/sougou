@@ -6,6 +6,8 @@
 #   /home/user/foyer                    → foyer をビルドして PATH へ
 #   /home/user/llm-wiki (LLM-Wiki)      → door llm-wiki
 #   /home/user/research (Research)      → door paleo-video
+#   /home/user/gyoumu                   → door gyoumu
+#   /home/user/kaisetu                  → door kaisetu
 #   /home/user/readable-writing-dist    → plugin readable-writing
 # 足りない repo は、最後に出す案内を読んだエージェントが add_repo で付けてから、このスクリプトを打ち直す。
 set -euo pipefail
@@ -51,6 +53,11 @@ add_door llm-wiki takahashi919/LLM-Wiki "$WIKI" --mode full \
 [ -d "$WIKI" ] && chmod +x "$WIKI"/scripts/wiki "$WIKI"/scripts/*.sh 2>/dev/null || true
 add_door paleo-video takahashi919/Research "$(dir_of research Research)" \
   --desc "paleo-video — 子供向け古生代教育動画の本番ハーネス; 研究(NotebookLM)→台本→音声→timing→レンダーのゲート制パイプライン。エピソード制作・素材・台本の依頼はここ"
+
+add_door gyoumu takahashi919/gyoumu "$(dir_of gyoumu)" \
+  --desc "gyoumu — 電気工事・太陽光発電設備の保守の業務判断を貯める; 自社の手順・現場の知見・点検・トラブル対応の相談はここ"
+add_door kaisetu takahashi919/kaisetu "$(dir_of kaisetu)" \
+  --desc "kaisetu — 説明物の工房; 図解・解説ページ・赤ペン・レビューの可視化。図解スキルの正本"
 
 # 3. readable-writing（文章を書く日だけ要る。無くても案内しない）
 RW="$(dir_of readable-writing-dist)"
