@@ -8,6 +8,7 @@
 #   /home/user/research (Research)      → door paleo-video
 #   /home/user/gyoumu                   → door gyoumu
 #   /home/user/kaisetu                  → door kaisetu
+#   /home/user/Screen-akapen-video-skill → door screen-akapen
 #   /home/user/readable-writing-dist    → plugin readable-writing
 # 足りない repo は、最後に出す案内を読んだエージェントが add_repo で付けてから、このスクリプトを打ち直す。
 set -euo pipefail
@@ -58,6 +59,9 @@ add_door gyoumu takahashi919/gyoumu "$(dir_of gyoumu)" \
   --desc "gyoumu — 電気工事・太陽光発電設備の保守の業務判断を貯める; 自社の手順・現場の知見・点検・トラブル対応の相談はここ"
 add_door kaisetu takahashi919/kaisetu "$(dir_of kaisetu)" \
   --desc "kaisetu — 説明物の工房; 図解・解説ページ・赤ペン・レビューの可視化。図解スキルの正本"
+
+add_door screen-akapen takahashi919/Screen-akapen-video-skill "$(dir_of Screen-akapen-video-skill screen-akapen-video-skill)" \
+  --desc "screen-akapen — 実画面 (スクショ・録画) に赤ペン注釈を描き、TTS で語る体験動画 mp4 を作る; ナレーション付き動画はここ (静止画の取説は kaisetu)"
 
 # 3. readable-writing（文章を書く日だけ要る。無くても案内しない）
 RW="$(dir_of readable-writing-dist)"
