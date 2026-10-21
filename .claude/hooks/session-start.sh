@@ -63,6 +63,9 @@ add_door kaisetu takahashi919/kaisetu "$(dir_of kaisetu)" \
 add_door screen-akapen takahashi919/Screen-akapen-video-skill "$(dir_of Screen-akapen-video-skill screen-akapen-video-skill)" \
   --desc "screen-akapen — 実画面 (スクショ・録画) に赤ペン注釈を描き、TTS で語る体験動画 mp4 を作る; ナレーション付き動画はここ (静止画の取説は kaisetu)"
 
+# 2.5 skills/ を ~/.claude/skills/ へ配る（コンテナは毎回まっさらなので毎回配る。冪等）
+python3 "$ROOT/scripts/sync_user_skills.py" --apply >/dev/null 2>&1 && log "skills/ を配った" || log "skills/ の配布に失敗した"
+
 # 3. readable-writing（文章を書く日だけ要る。無くても案内しない）
 RW="$(dir_of readable-writing-dist)"
 if [ -f "$RW/.claude-plugin/marketplace.json" ] && ! claude plugin list 2>/dev/null | grep -q 'readable-writing@'; then

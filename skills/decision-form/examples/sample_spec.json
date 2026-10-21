@@ -1,0 +1,18 @@
+{
+ "title": "サンプル回 書き出し前の確認",
+ "heading": "sample01 書き出し前の確認",
+ "episode": "sample01",
+ "answer_label": "書き出し前の確認",
+ "storage_key": "sample01_export_check",
+ "lead": "<p>これは decision-form の見本です。選ぶと下の回答一覧が変わります。</p>",
+ "questions": [
+  {"id": "q1", "title": "① 冒頭の絵",
+   "media": ["sample.svg"],
+   "desc": "<p>冒頭に出す絵です。</p><table><tr><th>項目</th><th>結果</th></tr><tr><td>lint</td><td class=\"ok\">エラー0</td></tr><tr><td>絵の密度</td><td class=\"mid\">68%</td></tr></table><details><summary>くわしく</summary><p>折りたたみの中身。</p></details>",
+   "options": ["このままでOK（おすすめ：機械検査が通っている）", "直したい所がある（下に書く）"]},
+  {"id": "q2", "title": "② 書き出しの進め方",
+   "desc": "<p>書き出しは約20分かかります。</p>",
+   "options": ["もう一度見せてから書き出す（おすすめ：音を聞いてから決められる）", "そのまま書き出してよい"]}
+ ],
+ "overall_comment": true
+}
