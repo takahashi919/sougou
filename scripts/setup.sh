@@ -5,12 +5,14 @@
 # 変更したいときは環境変数で:
 #   RESEARCH_DIR=~/dev/research WIKI_DIR=~/wiki/llm-wiki TOOLS_DIR=~/tools bash scripts/setup.sh
 #   READABLE_WRITING_DIR=~/tools/readable-writing-dist  （手順 6。既定は $TOOLS_DIR の下）
+#   TENAOSHI_DIR=~/tools/tenaoshi                        （手順 7。既定は $TOOLS_DIR の下）
 set -euo pipefail
 
 TOOLS_DIR="${TOOLS_DIR:-$HOME/tools}"
 WIKI_DIR="${WIKI_DIR:-$HOME/wiki/llm-wiki}"
 RESEARCH_DIR="${RESEARCH_DIR:-}"
 READABLE_WRITING_DIR="${READABLE_WRITING_DIR:-$TOOLS_DIR/readable-writing-dist}"
+TENAOSHI_DIR="${TENAOSHI_DIR:-$TOOLS_DIR/tenaoshi}"
 OWNER="${OWNER:-takahashi919}"
 
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -97,6 +99,21 @@ else
   fi
   claude plugin install readable-writing@readable-writing-dist
   ok "入れた。agent 定義は起動時にしか読まれないので、Claude Code を開き直すこと"
+fi
+
+step "7. tenaoshi（画面の上に描いて直してもらう skill。まさお氏の配布物）"
+# 利用規約で「購入者本人が自分の PC で使う」以外が禁じられている。中身は sougou（public）に入れず、
+# 配布 repo（private）から直接入れる。Windows は作者が未対応としている（→ docs/setup.md 手順 7）。
+if claude plugin list 2>/dev/null | grep -q 'tenaoshi@'; then
+  skip "tenaoshi は入っている"
+else
+  if [ -f "$TENAOSHI_DIR/.claude-plugin/marketplace.json" ]; then
+    claude plugin marketplace add "$TENAOSHI_DIR"
+  else
+    claude plugin marketplace add AI-Driven-R-D-Dept/tenaoshi
+  fi
+  claude plugin install tenaoshi@tenaoshi --scope user
+  ok "入れた。Claude Code を開き直すこと（動作確認は docs/setup.md 手順 7）"
 fi
 
 step "できあがり"

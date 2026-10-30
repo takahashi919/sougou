@@ -1,6 +1,6 @@
 # スキル棚卸し（全 repo 横断）
 
-> 初版 2026-09-20 ／ 更新 2026-09-20（移設の反映と MiniMax の訂正）／ **更新 2026-10-06**（readable-writing の受け入れ → §4）
+> 初版 2026-09-20 ／ 更新 2026-09-20（移設の反映と MiniMax の訂正）／ **更新 2026-10-06**（readable-writing の受け入れ → §4） ／ **更新 2026-10-30**（tenaoshi の受け入れ → §4・使用回数の測り方 → §1）
 > 対象: この環境に clone 済みの全 repo
 > 目的: 「いる / いらない」を名前だけで判断できないので、**何をするものか**と**配線されているか**を並べる。
 
@@ -14,6 +14,7 @@
 | llm-wiki | 4 | 対象外 | llm-wiki の配布物。司書の動線そのもの |
 | foyer | 1 | 対象外 | foyer の配布物（操作リファレンス） |
 | readable-writing | 13 | 対象外 | まさお氏の配布 plugin（2026-10-06 受け入れ → §4） |
+| tenaoshi | 1 | 対象外 | まさお氏の配布 plugin（2026-10-30 受け入れ → §4）。利用規約で中身の持ち出し禁止 |
 | sougou | 2 | 正本 | `md-report-html` · `ref-readable-diagram`（research から移設） |
 
 opabenia の 6 本は `character-bible` `eyecatch-se-rules` `script-policy` `structure-templates`
@@ -39,6 +40,13 @@ opabenia の 6 本は `character-bible` `eyecatch-se-rules` `script-policy` `str
 **Codex は `.agents/skills/` から直接スキルを拾う**ので、Codex 専用のスキルは名指しされていなくても
 正常に動く。参照 0 を見たら、まず `.agents/skills/<name>/` の中に `agents/*.yaml` や
 `scripts/` が入っていないかを確かめること（入っていれば自己完結型で、参照 0 は異常ではない）。
+
+### 使用回数は会話ログで数える
+
+参照数は「呼ばれる配線があるか」で、**実際に使ったか**ではない。使用回数は手元の PC で
+`python3 scripts/skill_usage.py [--since YYYY-MM-DD]` を打って測る（`~/.claude/projects/` の会話ログから
+Skill ツールの呼び出しとスラッシュコマンドを数える）。cloud セッションと Codex の利用は数えられない。
+git の履歴で数えると「直した回数」が混ざるので使わない。
 
 ---
 
@@ -205,6 +213,34 @@ plugin は MIT、実例 `examples/` は CC BY-NC 4.0。配布 repo は `AI-Drive
 
 既存スキルとの関係: `md-report-html`（Markdown → レポート HTML）とは用途が別で被らない。
 図の原則は `ref-readable-diagram`、文章の原則は `plain-japanese-writing` と分担する。
+
+### tenaoshi — 1 本（まさお氏の配布物・2026-10-30 受け入れ）
+
+| スキル | 何をするか |
+|---|---|
+| `tenaoshi` | agent が作った画面 HTML（UI・文書・図）をブラウザのキャンバスに出し、人がその上に矩形・矢印・手描き・文字・ピンで描いて返す。agent は描き込み入りの画像を読んで次の版を作り、キャンバスに前の版との差分が出る。「手直しして」「/tenaoshi」で発動 |
+
+配布 repo は `AI-Driven-R-D-Dept/tenaoshi`（private）、v0.1.3。**オープンソースではない。**
+利用規約で許されているのは購入者・メンバー本人が自分の PC で使うことだけ（自分用の改変は可）。
+複製して渡す・公開 repo / 共有ドライブ / SNS / チャットに置く・組み込んで配るのは禁止。
+**だから sougou（public）にも、他の repo にも中身を入れない。** 導入は `docs/setup.md` 手順 7。
+
+受け入れ時に確かめたこと（2026-10-30）:
+
+- cloud（Linux・root・Playwright の Chromium）で local marketplace → `install --scope user` → enabled まで通った
+- `selftest` が `{"ok":true,…}`、`dryrun` が 5 種の描き込みを送って「送信 ok」と回答文まで一周した
+- 外部通信なし（キャンバスは静的 HTML、中継は python3 標準ライブラリで `127.0.0.1` に bind）
+
+**注意点:**
+
+1. **Windows は作者が未対応。** 手元が Windows なら WSL2 の中で使う（未検証）
+2. root で動かすと Chrome が `--no-sandbox` 無しで起動しない。本体は直さず、`CHROME_BIN` に `--no-sandbox` を足すだけの小さな起動スクリプトを渡す
+3. cloud では使えない（キャンバスがコンテナの `127.0.0.1` に立ち、手元のブラウザから届かない）
+4. 記録は作業したディレクトリの `./tenaoshi/<id>/` に残る。repo の中で使うなら commit するか .gitignore に足すかを決めておく
+
+既存スキルとの関係: `screen-akapen-video` は**実画面に赤ペンを描いて動画にする**（見せる側）、tenaoshi は
+**人が描いて agent に直させる**（直してもらう側）。向きが逆で被らない。README にある姉妹 plugin の akapen
+（agent の問いに人が答える）は未受け入れ。
 
 ### akari-video-project-template — 23 本
 

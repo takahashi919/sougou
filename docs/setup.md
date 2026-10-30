@@ -27,8 +27,9 @@ RESEARCH_DIR=~/dev/research bash scripts/setup.sh
 | 4 | **paleo-video** | 動画制作の door | research のクローン |
 | 5 | 汎用スキル | `skills/` → `~/.claude/skills/` | → `skills/README.md` |
 | 6 | **readable-writing** | 日本語の文章・技術記事を書く plugin（まさお氏の配布物） | 配布 repo を marketplace に（user scope） |
+| 7 | **tenaoshi** | 画面の上に描いて直してもらう plugin（まさお氏の配布物） | 配布 repo を marketplace に（user scope） |
 
-**1・2・6 は道具**（インストールするもの）で door にしない。**3・4 は作業場**（door にするもの）。
+**1・2・6・7 は道具**（インストールするもの）で door にしない。**3・4 は作業場**（door にするもの）。
 
 ---
 
@@ -107,6 +108,38 @@ claude plugin install readable-writing@readable-writing-dist
   `plugin/skills/wrap-masao-article/references/` の 4 ファイルを書き直し、**そのフォルダ**を marketplace に足す
   （`READABLE_WRITING_DIR` に置けば setup.sh が拾う。→ `docs/skill_inventory.md` §4）
 
+### 7. tenaoshi
+
+agent が作った画面 HTML をブラウザのキャンバスに出し、人がその上に矩形・矢印・手描き・文字で描いて
+[送信] すると、agent が描き込みを読んで次の版を返す。「手直しして」か `/tenaoshi` で発動。
+
+**利用規約が厳しい**（オープンソースではない）。使ってよいのは購入者・メンバー本人が自分の PC で、だけ。
+複製して渡す・公開 repo や共有ドライブやチャットに置く・組み込んで配る、はすべて禁止。
+だから **sougou には中身を入れない**（この repo は public）。配布 repo（`AI-Driven-R-D-Dept/tenaoshi`、private）を
+直接 marketplace として足す:
+
+```powershell
+claude plugin marketplace add AI-Driven-R-D-Dept/tenaoshi
+claude plugin install tenaoshi@tenaoshi --scope user
+```
+
+- 前提: **Node.js 22 以上**・**Chrome / Chromium**（headless で画面を撮る）・python3（無くても貼り付けで回る）
+- **Windows は作者が未対応としている**（中継の常駐と Chrome の探索が無い）。動くのは macOS（作者が実走）と
+  Linux（2026-10-30 に cloud の Linux で selftest・dryrun が通ったのを確認）。Windows の PC なら WSL2 の中に
+  Node 22 と Chromium を入れて使う（未検証）
+- 動作確認（skill の場所は `claude plugin list` の版に合わせる）:
+
+  ```sh
+  tenaoshi() { node "$(ls -d ~/.claude/plugins/cache/tenaoshi/tenaoshi/*/skills/tenaoshi | sort -V | tail -1)/scripts/tenaoshi.mjs" "$@"; }
+  tenaoshi selftest                  # 1 行目が {"ok":true,…} なら通っている
+  tenaoshi dryrun ./画面.html         # 末尾に「送信 ok」と回答文が出れば一周できた
+  ```
+
+- **root で動かすと Chrome が起動しない**（`--no-sandbox` が要る）。本体は直さず、`--no-sandbox` を足して
+  Chrome を呼ぶだけの小さなスクリプトを作り、そのパスを `CHROME_BIN` に渡す
+- dryrun に渡す画面は **幅 400・高さ 560 以上**。小さいと「小さすぎて描けない」で止まる
+- 版を上げるときは `claude plugin update tenaoshi@tenaoshi`
+
 ---
 
 ## cloud セッション（claude.ai/code）
@@ -120,6 +153,9 @@ cloud のコンテナは毎回まっさらなので、`.claude/hooks/session-sta
 | `llm-wiki`（`LLM-Wiki`） | door `llm-wiki` を `--mode full` で登録。`TZ=Asia/Tokyo` も入れる |
 | `research`（`Research`） | door `paleo-video` を登録 |
 | `readable-writing-dist` | plugin を入れる（skill は次のセッションから） |
+
+tenaoshi は cloud に入れない。キャンバスはコンテナの `127.0.0.1` に立つので、手元のブラウザから描けない。
+手元の PC（Remote Control のセッションを含む）で使う。
 
 **private repo はセッションに付いていないと取れない**（環境の setup script からも取れない）。
 足りない repo は hook が名前を出すので、エージェントが必要なときだけ付けて clone し、hook を打ち直す。
@@ -151,6 +187,7 @@ hook の登録と `foyer` の許可は `.claude/settings.json` に置いてあ�
 | llm-wiki のテストが大量に落ちる | `TZ=Asia/Tokyo` を付けているか |
 | npm install が失敗する | 同梱 `dist/` で動作確認だけする（上記 1） |
 | `readable-writing:` の skill が出ない / 書き手 agent が見つからない | install 後に Claude Code を開き直したか / `claude plugin list` で enabled か |
+| tenaoshi の selftest が `Chrome が起動直後に終了した` | root で動かしている（上記 7 の `--no-sandbox`）か、`CHROME_BIN` が実体を指していない |
 | cloud で `foyer` が無い / door が足りない | セッション開始時の `[sougou]` の行を見る。名前の出た repo を付けて clone し、`CLAUDE_CODE_REMOTE=true bash .claude/hooks/session-start.sh` |
 
 ## 管理画面（任意）
