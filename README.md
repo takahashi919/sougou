@@ -22,6 +22,8 @@ door にすれば、受付に載るのはカタログの引き方数行だけで
 | | |
 |---|---|
 | `CLAUDE.md` | 受付の規約。**30 行以内**。door が増えても行数は増えない |
+| `ops/` | 分担の管理と配布の決まり、進行中の案件の一覧（→ `ops/README.md`） |
+| `HANDOFF.md` | リポジトリをまたぐ案件の引継ぎ |
 | `docs/setup.md` | 新しいマシンでの導入手順 |
 | `scripts/setup.sh` | 導入を一気通貫で流す（何度でも打ち直せる） |
 | `scripts/sync_user_skills.py` | `skills/` を `~/.claude/skills/` へ配る |
