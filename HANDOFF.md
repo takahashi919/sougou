@@ -5,7 +5,7 @@ from: claude
 to: claude
 next: owner
 waiting: なし
-origin: takahashi919/sougou @ ccr-b98ba5c5-xrt8jv
+origin: takahashi919/sougou @ main
 ---
 
 # 引継ぎ: リポジトリをまたぐ案件（総合）

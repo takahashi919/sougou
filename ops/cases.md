@@ -5,5 +5,5 @@
 
 | 件名 | リポジトリ | ブランチ |
 |---|---|---|
-| リポジトリをまたぐ案件 | takahashi919/sougou | ccr-b98ba5c5-xrt8jv |
+| リポジトリをまたぐ案件 | takahashi919/sougou | main |
 | リヴィアタン vs メガロドン 台本 | takahashi919/paleo-video | claude/livyatan-megalodon-script-b2x9sp |
